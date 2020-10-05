@@ -18,6 +18,7 @@ export class AlphabetLearnComponent implements OnInit, OnDestroy, AfterViewInit 
 
     letter: AlphabetLetter;
     capital: string;
+    pre_category: string;
 
     constructor(
         private transferService: TransferLetterService,
@@ -27,6 +28,7 @@ export class AlphabetLearnComponent implements OnInit, OnDestroy, AfterViewInit 
     ) {
         this.letter = this.transferService.getData() as AlphabetLetter;
         this.capital = this.activatedRoute.snapshot.queryParamMap.get('capital');
+        this.pre_category = this.activatedRoute.snapshot.queryParamMap.get('pre_category');
         if (!this.letter) {
             this.router.navigateByUrl('/alphabet-list-all');
         }
@@ -115,6 +117,9 @@ export class AlphabetLearnComponent implements OnInit, OnDestroy, AfterViewInit 
             this.router.navigate(['alphabet-quiz'], {queryParams: {capital: true}});
         } else {
             this.router.navigateByUrl('/alphabet-quiz');
+        }
+        if (this.pre_category) {
+            this.router.navigate(['alphabet-quiz'], {queryParams: {pre_category: this.pre_category}});
         }
     }
 }

@@ -190,4 +190,12 @@ export class ProgressService {
     // Date of current session
     this.storage.set(dateKey, date);
   }
+
+  saveQuizNumber(key, value) {
+    this.storage.set(key, value)
+  }
+
+  getQuizNumber(key) {
+    return this.storage.get(key)
+  }
 }

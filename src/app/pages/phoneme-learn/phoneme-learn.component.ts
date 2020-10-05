@@ -32,6 +32,7 @@ export class PhonemeLearnComponent implements OnInit, OnDestroy, AfterViewInit {
     ex3Audio: HTMLAudioElement;
 
     phoneme: Phoneme;
+    pre_category: string;
     capital: string;
 
     img1: string;
@@ -51,6 +52,7 @@ export class PhonemeLearnComponent implements OnInit, OnDestroy, AfterViewInit {
     ) {
         this.phoneme = this.transferService.getData() as Phoneme;
         this.capital = this.activatedRoute.snapshot.queryParamMap.get('capital');
+        this.pre_category = this.activatedRoute.snapshot.queryParamMap.get('pre_category');
         this.img1 = this.phoneme.word1.image;
         this.img2 = this.phoneme.word2.image;
         this.img3 = this.phoneme.word3.image;
@@ -73,6 +75,9 @@ export class PhonemeLearnComponent implements OnInit, OnDestroy, AfterViewInit {
     showQuiz() {
         this.transferService.setData(this.phoneme)
         this.router.navigate(['phoneme-quiz'], {queryParams: {capital: true}});
+        if (this.pre_category && this.pre_category != null) {
+            this.router.navigate(['phoneme-quiz'], {queryParams: {pre_category: this.pre_category}});
+        }
     }
 
     ngOnInit() {

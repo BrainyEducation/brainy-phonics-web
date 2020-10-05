@@ -18,6 +18,7 @@ export class ListSelectComponent implements OnInit, OnDestroy, AfterViewInit {
   list: string;
   grade: string;
   capital: string;
+  pre_category: string;
   // filled with test data to be overridden later
   data: AlphabetLetter[] | Phoneme[];
   dataProgress: any[];
@@ -37,6 +38,7 @@ export class ListSelectComponent implements OnInit, OnDestroy, AfterViewInit {
     this.list = list;
     this.grade = this.activatedRoute.snapshot.queryParamMap.get('grade');
     this.capital = this.activatedRoute.snapshot.queryParamMap.get('capital');
+    this.pre_category = this.activatedRoute.snapshot.queryParamMap.get('pre_category');
     if (!list || list === '') {
       this.router.navigate(['']);
     } else if (list == 'alphabet') {
@@ -165,7 +167,7 @@ export class ListSelectComponent implements OnInit, OnDestroy, AfterViewInit {
       if (!this.dataProgress.includes(item)) {
         this.cardItemCount++;
         if (this.list === 'alphabet') {
-          queryStatement = 'letter' + item.letter;
+          queryStatement = 'letter' + '_' + this.pre_category + '_' + item.letter;
           numGoldStars = this.progressService.getGoldStarsFromKey(
             queryStatement
           );
@@ -173,7 +175,11 @@ export class ListSelectComponent implements OnInit, OnDestroy, AfterViewInit {
             queryStatement
           );
         } else {
-          queryStatement = 'phoneme' + item.id;
+          if (this.pre_category && this.pre_category != null) {
+            queryStatement = 'phoneme' + '_' + this.pre_category + '_' + item.id;
+          } else {
+            queryStatement = 'phoneme' + item.id;
+          }
           numGoldStars = this.progressService.getGoldStarsFromKey(
             queryStatement
           );
@@ -264,6 +270,11 @@ export class ListSelectComponent implements OnInit, OnDestroy, AfterViewInit {
       } else {
         this.router.navigate(['alphabet-learn']);
       }
+      if (this.pre_category) {
+        this.router.navigate(['alphabet-learn'], {
+          queryParams: { pre_category: this.pre_category }
+        });
+      }
     } else {
       if (this.capital) {
         this.router.navigate(['phoneme-learn'], {
@@ -271,6 +282,11 @@ export class ListSelectComponent implements OnInit, OnDestroy, AfterViewInit {
         });
       } else {
         this.router.navigate(['phoneme-learn']);
+      }
+      if (this.pre_category) {
+        this.router.navigate(['phoneme-learn'], {
+          queryParams: { pre_category: this.pre_category }
+        });
       }
     }
   }

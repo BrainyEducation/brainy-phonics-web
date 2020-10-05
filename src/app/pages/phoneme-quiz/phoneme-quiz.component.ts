@@ -51,6 +51,7 @@ export class PhonemeQuizComponent implements OnInit, OnDestroy, AfterViewInit {
   grade: string;
   quizAll: string;
   capital: string;
+  pre_category: string;
   key: number;
   begin: boolean = false;
 
@@ -94,6 +95,7 @@ export class PhonemeQuizComponent implements OnInit, OnDestroy, AfterViewInit {
     this.quizAll = this.activatedRoute.snapshot.queryParamMap.get('quizAll');
     this.grade = this.activatedRoute.snapshot.queryParamMap.get('grade');
     this.capital = this.activatedRoute.snapshot.queryParamMap.get('capital');
+    this.pre_category = this.activatedRoute.snapshot.queryParamMap.get('pre_category');
     // Sets random phoneme if selected Quiz-all function
     if (this.quizAll === 'true') {
       let list = this.activatedRoute.snapshot.queryParamMap.get('list');
@@ -194,9 +196,23 @@ export class PhonemeQuizComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     this.quizNumber++;
 
-    this.phoneme.puzzlePiecesEarned = this.phonemeProgressService.getPuzzlePieces(
-      this.phoneme.id
-    );
+    var temp_number = 0;
+    if (this.pre_category && this.pre_category != null) {
+      this.phoneme.puzzlePiecesEarned = this.phonemeProgressService.getPuzzlePieces(
+        this.pre_category + '_' + this.phoneme.id
+        );
+      temp_number = this.phonemeProgressService.getQuizNumber('quizNumber' + '_' + this.pre_category + '_' + this.phoneme.id);
+    } else {
+      temp_number = this.phonemeProgressService.getQuizNumber('quizNumber' + '_' + this.phoneme.id);
+      this.phoneme.puzzlePiecesEarned = this.phonemeProgressService.getPuzzlePieces(
+        this.phoneme.id
+      );
+    }
+
+    if (temp_number != null) {
+      this.quizNumber = temp_number;
+    }
+
     if (this.phoneme.puzzlePiecesEarned == 12) {
       this.puzzleComplete = true;
     }
@@ -390,34 +406,69 @@ export class PhonemeQuizComponent implements OnInit, OnDestroy, AfterViewInit {
   onCorrect() {
     this.numberOfAttempts++;
     this.quizNumber++;
+    if (this.pre_category && this.pre_category != null) {
+      this.phonemeProgressService.saveQuizNumber('quizNumber' + '_' + this.pre_category + '_' + this.phoneme.id, this.quizNumber);
+    } else {
+      this.phonemeProgressService.saveQuizNumber('quizNumber' + '_' + this.phoneme.id, this.quizNumber);
+    }
 
     var initialPuzzlePieces = this.phoneme.puzzlePiecesEarned;
     if (this.isFirstAttempt) {
-      this.phonemeProgressService.addPuzzlePieces(this.phoneme.id, 2);
       this.phonemeProgressService.addCoins('phoneme' + this.phoneme.id, 2);
-      //add stars to progress if select correct phoneme on first attempt
-      this.phonemeProgressService.saveStarsToKey(
-        'phoneme' + this.phoneme.id + 'gold',
-        1
-      );
-      if (
-        this.phonemeProgressService.getSilverStarsFromKey(
-          'phoneme' + this.phoneme.id
-        ) > 0
-      ) {
+      if (this.pre_category && this.pre_category != null) {
+        this.phonemeProgressService.addPuzzlePieces(this.pre_category + '_' + this.phoneme.id, 2);
+        //add stars to progress if select correct phoneme on first attempt
         this.phonemeProgressService.saveStarsToKey(
-          'phoneme' + this.phoneme.id + 'silv',
-          -1
+          'phoneme' + '_' + this.pre_category + '_' + this.phoneme.id + 'gold',
+          1
         );
+        if (
+          this.phonemeProgressService.getSilverStarsFromKey(
+            'phoneme' + '_' + this.pre_category + '_' + this.phoneme.id
+          ) > 0
+        ) {
+          this.phonemeProgressService.saveStarsToKey(
+            'phoneme' + '_' + this.pre_category + '_' + this.phoneme.id + 'silv',
+            -1
+          );
+        }
+      } else {
+        this.phonemeProgressService.addPuzzlePieces(this.phoneme.id, 2);
+        //add stars to progress if select correct phoneme on first attempt
+        this.phonemeProgressService.saveStarsToKey(
+          'phoneme' + this.phoneme.id + 'gold',
+          1
+        );
+        if (
+          this.phonemeProgressService.getSilverStarsFromKey(
+            'phoneme' + this.phoneme.id
+          ) > 0
+        ) {
+          this.phonemeProgressService.saveStarsToKey(
+            'phoneme' + this.phoneme.id + 'silv',
+            -1
+          );
+        }
       }
     } else {
-      this.phonemeProgressService.addPuzzlePieces(this.phoneme.id, 1);
+      if (this.pre_category && this.pre_category != null) {
+        this.phonemeProgressService.addPuzzlePieces(this.pre_category + '_' + this.phoneme.id, 1);
+      } else {
+        this.phonemeProgressService.addPuzzlePieces(this.phoneme.id, 1);
+      }
       this.phonemeProgressService.addCoins('phoneme' + this.phoneme.id, 1);
+      this.hasGuessed = false;
     }
 
-    this.phoneme.puzzlePiecesEarned = this.phonemeProgressService.getPuzzlePieces(
-      this.phoneme.id
-    );
+    if (this.pre_category && this.pre_category != null) {
+      this.phoneme.puzzlePiecesEarned = this.phonemeProgressService.getPuzzlePieces(
+        this.pre_category + '_' + this.phoneme.id
+      );
+    } else {
+      this.phoneme.puzzlePiecesEarned = this.phonemeProgressService.getPuzzlePieces(
+        this.phoneme.id
+      );
+    }
     this.piecesToAnimate =
       this.phoneme.puzzlePiecesEarned - initialPuzzlePieces;
 
@@ -441,10 +492,18 @@ export class PhonemeQuizComponent implements OnInit, OnDestroy, AfterViewInit {
 
     if (this.phoneme.puzzlePiecesEarned == 12) {
       // Add checkmark
-      this.phonemeProgressService.setCheckMark(
-        'phoneme' + this.phoneme.id,
-        true
-      );
+
+      if (this.pre_category && this.pre_category != null) {
+        this.phonemeProgressService.setCheckMark(
+          'phoneme' + '_' + this.pre_category + '_' + this.phoneme.id,
+          true
+        );
+      } else {
+        this.phonemeProgressService.setCheckMark(
+          'phoneme' + this.phoneme.id,
+          true
+        );
+      }
 
       // Update puzzle view
       this.puzzleAnimate = true;
@@ -488,7 +547,6 @@ export class PhonemeQuizComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
   goToPuzzle() {
-    console.log('go to puzzle');
     if (this.phoneme.puzzlePiecesEarned == 12) {
       this.transferService.setData(this.phoneme);
       this.router.navigate(['puzzle'], { queryParams: { from: 'quiz' } });
@@ -909,21 +967,42 @@ export class PhonemeQuizComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.hasGuessed) {
       this.hasGuessed = true;
       this.isFirstAttempt = false;
-      const goldStarNum = this.phonemeProgressService.getGoldStarsFromKey(
-        'phoneme' + this.phoneme.id
-      );
-      if (goldStarNum > 0 && goldStarNum < 5) {
-        this.phonemeProgressService.saveStarsToKey(
-          'phoneme' + this.phoneme.id + 'gold',
-          -1
+      if (this.pre_category && this.pre_category != null) {
+        const goldStarNum = this.phonemeProgressService.getGoldStarsFromKey(
+          'phoneme' + '_' + this.pre_category + '_' + this.phoneme.id
         );
-        this.phonemeProgressService.saveStarsToKey(
-          'phoneme' + this.phoneme.id + 'silv',
-          1
+        if (goldStarNum > 0 && goldStarNum < 5) {
+          this.phonemeProgressService.saveStarsToKey(
+            'phoneme' + '_' + this.pre_category + '_' + this.phoneme.id + 'gold',
+            -1
+          );
+          this.phonemeProgressService.saveStarsToKey(
+            'phoneme' + '_' + this.pre_category + '_' + this.phoneme.id + 'silv',
+            1
+          );
+        }
+      } else {
+        const goldStarNum = this.phonemeProgressService.getGoldStarsFromKey(
+          'phoneme' + this.phoneme.id
         );
+        if (goldStarNum > 0 && goldStarNum < 5) {
+          this.phonemeProgressService.saveStarsToKey(
+            'phoneme' + this.phoneme.id + 'gold',
+            -1
+          );
+          this.phonemeProgressService.saveStarsToKey(
+            'phoneme' + this.phoneme.id + 'silv',
+            1
+          );
+        }
       }
     }
-    this.phonemeProgressService.addIncorrectAnswer('phoneme' + this.phoneme.id);
+
+    if (this.pre_category && this.pre_category != null) {
+      this.phonemeProgressService.addIncorrectAnswer('phoneme' + '_' + this.pre_category + '_' + this.phoneme.id);
+    } else {
+      this.phonemeProgressService.addIncorrectAnswer('phoneme' + this.phoneme.id);
+    }
 
     if (this.numberOfAttempts == 2) {
       const currentIndex = this.transferService
@@ -935,7 +1014,7 @@ export class PhonemeQuizComponent implements OnInit, OnDestroy, AfterViewInit {
         this.phoneme = this.transferService.getList()[0] as Phoneme;
       } else {
         this.phoneme = this.transferService.getList()[
-          currentIndex + 1
+          currentIndex
         ] as Phoneme;
       }
       this.ngOnInit();

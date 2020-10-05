@@ -37,6 +37,7 @@ export class AlphabetQuizComponent implements OnInit, OnDestroy, AfterViewInit {
     capital: string;
     key: number;
     hasGuessed: boolean;
+    pre_category: string;
 
     ex1: AlphabetLetter;
     ex2: AlphabetLetter;
@@ -58,6 +59,10 @@ export class AlphabetQuizComponent implements OnInit, OnDestroy, AfterViewInit {
     ) {
         this.quizAll = this.activatedRoute.snapshot.queryParamMap.get('quizAll');
         this.capital = this.activatedRoute.snapshot.queryParamMap.get('capital');
+        this.pre_category = this.activatedRoute.snapshot.queryParamMap.get('pre_category');
+        if (this.pre_category == null) {
+            this.pre_category = 'normal';
+        }
         this.letterList = this.alphabetLettersService.dataImport(false);
 
         if (this.quizAll === 'true') {
@@ -176,14 +181,15 @@ export class AlphabetQuizComponent implements OnInit, OnDestroy, AfterViewInit {
         });
 
         if (this.isFirstAttempt) {
-            this.letterProgressService.addCoins("letter" + this.letter.letter, 2);
+            this.letterProgressService.addCoins("letter" + '_' + this.pre_category + '_' + this.letter.letter, 2);
             //add stars to progress if select correct letter on first attempt
-            this.letterProgressService.saveStarsToKey("letter" + this.letter.letter + "gold", 1);
-            if (this.letterProgressService.getSilverStarsFromKey("letter" + this.letter.letter) > 0) {
-                this.letterProgressService.saveStarsToKey("letter" + this.letter.letter + "silv", -1);
+            this.letterProgressService.saveStarsToKey("letter" + '_' + this.pre_category + '_' + this.letter.letter + "gold", 1);
+            if (this.letterProgressService.getSilverStarsFromKey("letter" + '_' + this.pre_category + '_' + this.letter.letter) > 0) {
+                this.letterProgressService.saveStarsToKey("letter" + '_' + this.pre_category + '_' + this.letter.letter + "silv", -1);
             }
         } else {
-            this.letterProgressService.addCoins("letter" + this.letter.letter, 1);
+            this.letterProgressService.addCoins("letter" + '_' + this.pre_category + '_' + this.letter.letter, 1);
+            this.hasGuessed = false;
         }
 
         this.submitAnalyticEvent(this.letter.letter).subscribe(r => console.log(r));
@@ -195,13 +201,13 @@ export class AlphabetQuizComponent implements OnInit, OnDestroy, AfterViewInit {
         if (!this.hasGuessed) {
             this.hasGuessed = true;
             this.isFirstAttempt = false;
-            const goldStarNum = this.letterProgressService.getGoldStarsFromKey("letter" + this.letter.letter)
+            const goldStarNum = this.letterProgressService.getGoldStarsFromKey("letter" + '_' + this.pre_category + '_' + this.letter.letter)
             if (goldStarNum > 0 && goldStarNum < 5) {
-                this.letterProgressService.saveStarsToKey("letter" + this.letter.letter + "gold", -1);
-                this.letterProgressService.saveStarsToKey("letter" + this.letter.letter + "silv", 1);
+                this.letterProgressService.saveStarsToKey("letter" + '_' + this.pre_category + '_' + this.letter.letter + "gold", -1);
+                this.letterProgressService.saveStarsToKey("letter" + '_' + this.pre_category + '_' + this.letter.letter + "silv", 1);
             }
         }
-        this.letterProgressService.addIncorrectAnswer('letter' + this.letter.letter);
+        this.letterProgressService.addIncorrectAnswer('letter' + '_' + this.pre_category + '_' + this.letter.letter);
     }
 
     loadNew() {
